@@ -1,9 +1,6 @@
-import fetch from "node-fetch";
 import fs from "fs";
 
 const start = async () => {
-  const x = await fetch("https://adventofcode.com/2022/day/1/input");
-
   const data = fs.readFileSync("./input.txt", "utf-8");
 
   const highestSum = data.split(/\r?\n/).reduce(
