@@ -6,7 +6,7 @@ const start = async () => {
 
   const data = fs.readFileSync("./input.txt", "utf-8");
 
-  const highestSum = data.split("\r\n").reduce(
+  const highestSum = data.split(/\r?\n/).reduce(
     (agg, curr) => {
       if (curr) {
         agg.currGroup += +curr;
