@@ -24,6 +24,21 @@ const procedureSteps = data
   .filter((x) => x.startsWith("move") === true)
   .map((step) => step.match(/\d+/g));
 
+const showStacks = (stacks) => {
+  const cols = Object.keys(stacks).length;
+  const rows = Object.values(stacks)
+    .map((x) => x.length)
+    .sort((a, b) => b - a)[0];
+
+  for (let y = 0; y < rows; y++) {
+    let output = "";
+    for (let x = 1; x <= cols; x++) {
+      output += ` ${stacks[x.toString()][y] || " "} `;
+    }
+    console.log(output);
+  }
+};
+
 const crateMover9000 = (initialState, steps) => {
   const arranged = { ...initialState };
   steps.forEach(([quantity, from, to]) => {
@@ -42,16 +57,21 @@ const crateMover9001 = (initialState, steps) => {
   return arranged;
 };
 
+const result9000 = crateMover9000(getStacks(data), procedureSteps);
+const result9001 = crateMover9001(getStacks(data), procedureSteps);
+
+showStacks(result9000);
 console.log(
   "Crate mover 9000:",
-  Object.values(crateMover9000(getStacks(data), procedureSteps))
+  Object.values(result9000)
     .map((x) => x.slice(0, 1))
     .join("")
 );
 
+showStacks(result9001);
 console.log(
   "Crate mover 9001:",
-  Object.values(crateMover9001(getStacks(data), procedureSteps))
+  Object.values(result9001)
     .map((x) => x.slice(0, 1))
     .join("")
 );
