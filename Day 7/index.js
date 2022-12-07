@@ -24,23 +24,22 @@ class DirNode {
 
 const parseListing = (directoryListing) => {
   const rows = directoryListing.split(/\r?\n/);
-  const root = rows.shift();
 
-  let directoryTree = new DirNode(root.split(" ")[2], null);
-  let pointer = directoryTree;
+  let directoryTree = new DirNode(rows.shift().split(" ")[2], null);
+  let cursor = directoryTree;
 
-  for (const row of rows) {
-    const data = row.split(" ");
+  rows.forEach((row) => {
+    const params = row.split(" ");
 
-    if (data[0] === "$" && data[1] == "cd") {
-      pointer =
-        data[2] === ".." ? pointer.parent : pointer.directories[data[2]];
-    } else if (data[0] === "dir") {
-      pointer.directories[data[1]] = new DirNode(data[1], pointer);
-    } else if (/\d+/.test(data[0])) {
-      pointer.files[data[1]] = +data[0];
+    if (params[0] === "$" && params[1] == "cd") {
+      cursor =
+        params[2] === ".." ? cursor.parent : cursor.directories[params[2]];
+    } else if (params[0] === "dir") {
+      cursor.directories[params[1]] = new DirNode(params[1], cursor);
+    } else if (/\d+/.test(params[0])) {
+      cursor.files[params[1]] = +params[0];
     }
-  }
+  });
 
   return directoryTree;
 };
