@@ -45,17 +45,10 @@ const parseListing = (directoryListing) => {
   return directoryTree;
 };
 
-const flattenDirs = ({ size, label, directories }) => {
-  const result = [];
-
-  result.push({ label: label, size });
-
-  result.push(
-    ...Object.values(directories).flatMap((directory) => flattenDirs(directory))
-  );
-
-  return result;
-};
+const flattenDirs = ({ size, label, directories }) => [
+  { label, size },
+  ...Object.values(directories).flatMap((directory) => flattenDirs(directory)),
+];
 
 var directoryTree = parseListing(fs.readFileSync("./input.txt", "utf-8"));
 
