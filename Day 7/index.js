@@ -22,23 +22,28 @@ class DirNode {
   }
 }
 
-var directoryListing = fs.readFileSync("./input.txt", "utf-8").split(/\r?\n/);
-const root = directoryListing.shift();
+const parseListing = (directoryListing) => {
+  const rows = directoryListing.split(/\r?\n/);
+  const root = rows.shift();
 
-let directoryTree = new DirNode(root.split(" ")[2], null);
-let pointer = directoryTree;
+  let directoryTree = new DirNode(root.split(" ")[2], null);
+  let pointer = directoryTree;
 
-for (const row of directoryListing) {
-  const data = row.split(" ");
+  for (const row of rows) {
+    const data = row.split(" ");
 
-  if (data[0] === "$" && data[1] == "cd") {
-    pointer = data[2] === ".." ? pointer.parent : pointer.directories[data[2]];
-  } else if (data[0] === "dir") {
-    pointer.directories[data[1]] = new DirNode(data[1], pointer);
-  } else if (/\d+/.test(data[0])) {
-    pointer.files[data[1]] = +data[0];
+    if (data[0] === "$" && data[1] == "cd") {
+      pointer =
+        data[2] === ".." ? pointer.parent : pointer.directories[data[2]];
+    } else if (data[0] === "dir") {
+      pointer.directories[data[1]] = new DirNode(data[1], pointer);
+    } else if (/\d+/.test(data[0])) {
+      pointer.files[data[1]] = +data[0];
+    }
   }
-}
+
+  return directoryTree;
+};
 
 const flattenDirs = ({ size, label, directories }) => {
   const result = [];
@@ -52,9 +57,18 @@ const flattenDirs = ({ size, label, directories }) => {
   return result;
 };
 
+var directoryTree = parseListing(fs.readFileSync("./input.txt", "utf-8"));
+
 const directorySizes = flattenDirs(directoryTree).sort(
   (a, b) => b.size - a.size
 );
+
+const remainingDriveSize = 70000000 - directoryTree.size;
+const requiredSizeSaving = 30000000 - remainingDriveSize;
+
+const suggestedDirForDeletion = directorySizes
+  .filter((x) => x.size >= requiredSizeSaving)
+  .pop();
 
 console.log(
   " Total size of dirs under 100000: ",
@@ -62,15 +76,6 @@ console.log(
     .filter((x) => x.size < 100000)
     .reduce((agg, curr) => (agg += curr.size), 0)
 );
-
-const totalDriveSize = 70000000;
-const updateSize = 30000000;
-const remainingDriveSize = totalDriveSize - directoryTree.size;
-const requiredSizeSaving = updateSize - remainingDriveSize;
-
-const suggestedDirForDeletion = directorySizes
-  .filter((x) => x.size >= requiredSizeSaving)
-  .pop();
 
 console.log(
   `Directory suggested for deletion:  ${suggestedDirForDeletion.label} (${suggestedDirForDeletion.size})`
