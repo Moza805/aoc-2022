@@ -12,9 +12,10 @@ const getVisibilityMatrix = (forest) => {
     for (let rC = 1; rC < forest.length - 1; rC++) {
       const tree = forest[rI][rC];
       const visibleLeft = forest[rI].slice(0, rC).every((t) => t < tree);
-      const visible = forest[rI].slice(rC + 1).every((t) => t < tree);
+      const visible =
+        visibleLeft || forest[rI].slice(rC + 1).every((t) => t < tree);
 
-      matrix[rI][rC] = visibleLeft || visible;
+      matrix[rI][rC] = visible;
     }
   }
 
