@@ -73,8 +73,7 @@ const part1 = (forest) => {
 
   const xMatrix = getVisibilityMatrix(forest);
   const rotatedForest = rotate(forest, "right");
-  const y = getVisibilityMatrix(rotatedForest);
-  const yMatrix = rotate(y, "left");
+  const yMatrix = rotate(getVisibilityMatrix(rotatedForest), "left");
 
   tally += xMatrix
     .map((row, rowIdx) =>
@@ -90,8 +89,7 @@ const part1 = (forest) => {
 const part2 = (forest) => {
   const xMatrix = getScenicMatrix(forest);
   const rotatedForest = rotate(forest, "right");
-  const y = getScenicMatrix(rotatedForest);
-  const yMatrix = rotate(y, "left");
+  const yMatrix = rotate(getScenicMatrix(rotatedForest), "left");
 
   return xMatrix
     .flatMap((row, rowIdx) =>
