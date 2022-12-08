@@ -5,14 +5,6 @@ const forest = fs
   .split(/\r?\n/)
   .map((row) => row.split("").map((x) => +x));
 
-// const forest = [
-//   [3, 0, 3, 7, 3],
-//   [2, 5, 5, 1, 2],
-//   [6, 5, 3, 3, 2],
-//   [3, 3, 5, 4, 9],
-//   [3, 5, 3, 9, 0],
-// ];
-
 const getVisibilityMatrix = (forest) => {
   const matrix = [...forest.map((x) => x.slice())];
 
@@ -20,10 +12,35 @@ const getVisibilityMatrix = (forest) => {
     for (let rC = 1; rC < forest.length - 1; rC++) {
       const tree = forest[rI][rC];
       const visibleLeft = forest[rI].slice(0, rC).every((t) => t < tree);
-
       const visible = forest[rI].slice(rC + 1).every((t) => t < tree);
 
       matrix[rI][rC] = visibleLeft || visible;
+    }
+  }
+
+  return matrix;
+};
+
+const getScenicMatrix = (forest) => {
+  const matrix = [...forest.map((x) => x.slice())];
+
+  for (let rI = 0; rI < forest[0].length; rI++) {
+    for (let rC = 0; rC < forest.length; rC++) {
+      const tree = forest[rI][rC];
+
+      let left = forest[rI].slice(0, rC).reverse();
+      left =
+        left.findIndex((t) => t >= tree) === -1
+          ? left.length
+          : left.findIndex((t) => t >= tree) + 1;
+
+      let right = forest[rI].slice(rC + 1);
+      right =
+        right.findIndex((t) => t >= tree) === -1
+          ? right.length
+          : right.findIndex((t) => t >= tree) + 1;
+
+      matrix[rI][rC] = left * right;
     }
   }
 
@@ -50,19 +67,40 @@ const rotate = (forest, direction = "right") => {
   return rotatedMatrix;
 };
 
-let tally = 2 * forest.length + 2 * forest[0].length - 4;
+const part1 = (forest) => {
+  let tally = 2 * forest.length + 2 * forest[0].length - 4;
 
-const xMatrix = getVisibilityMatrix(forest);
-const rotatedForest = rotate(forest, "right");
-const y = getVisibilityMatrix(rotatedForest);
-const yMatrix = rotate(y, "left");
+  const xMatrix = getVisibilityMatrix(forest);
+  const rotatedForest = rotate(forest, "right");
+  const y = getVisibilityMatrix(rotatedForest);
+  const yMatrix = rotate(y, "left");
 
-var result = xMatrix.map((row, rowIdx) =>
-  row.map((col, colIdx) => {
-    return col || yMatrix[rowIdx][colIdx];
-  })
-);
+  tally += xMatrix
+    .map((row, rowIdx) =>
+      row.map((col, colIdx) => {
+        return col || yMatrix[rowIdx][colIdx];
+      })
+    )
+    .flatMap((row) => row.filter((y) => y === true)).length;
 
-console.log(
-  tally + result.flatMap((row) => row.filter((y) => y === true)).length
-);
+  return tally;
+};
+
+const part2 = (forest) => {
+  const xMatrix = getScenicMatrix(forest);
+  const rotatedForest = rotate(forest, "right");
+  const y = getScenicMatrix(rotatedForest);
+  const yMatrix = rotate(y, "left");
+
+  return xMatrix
+    .flatMap((row, rowIdx) =>
+      row.map((col, colIdx) => {
+        return col * yMatrix[rowIdx][colIdx];
+      })
+    )
+    .sort((a, b) => a - b)
+    .pop();
+};
+
+console.log("Visibility score:", part1(forest));
+console.log("    Scenic score:", part2(forest));
