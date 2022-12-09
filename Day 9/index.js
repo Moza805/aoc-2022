@@ -2,63 +2,75 @@ import fs from "fs";
 
 const moves = fs
   .readFileSync("./input.txt", "utf-8")
-  //   `R 4
-  // U 4
-  // L 3
-  // D 1
-  // R 4
-  // D 1
-  // L 5
-  // R 2`
   .split(/\r?\n/)
   .map((row) => {
     const parts = row.split(" ");
-    const axis = parts[0] === "U" || parts[0] === "D" ? 1 : 0;
+    const axis = ["U", "D"].includes(parts[0]) ? 1 : 0;
+    const distance = +parts[1] * (["U", "L"].includes(parts[0]) ? -1 : 1);
 
-    const distance =
-      +parts[1] * (parts[0] === "U" || parts[0] === "L" ? -1 : 1);
-
-    return {
-      axis,
-      distance,
-    };
+    return { axis, distance };
   });
 
-const partA = moves.reduce(
-  ({ h, t, m }, { axis, distance }) => {
-    const sign = distance < 0 ? -1 : 1;
+const createKnotArray = (knots) => {
+  const knotArray = [];
 
-    for (let i = 0; i < Math.abs(distance); i++) {
-      h[axis] += sign;
-      const [xDiff, yDiff] = [h[0] - t[0], h[1] - t[1]];
-      const [absXDiff, absYDiff] = [Math.abs(xDiff), Math.abs(yDiff)];
+  do {
+    knotArray.push([0, 0]);
+  } while (knotArray.length <= knots);
 
-      if ((xDiff === 0 && absYDiff > 1) || (yDiff === 0 && absXDiff > 1)) {
-        t[axis] += sign;
-      } else if (absXDiff > 1 || absYDiff > 1) {
-        const otherAxis = axis === 0 ? 1 : 0;
-        const otherSign = h[otherAxis] - t[otherAxis] < 0 ? 1 : -1;
-        t[axis] += sign;
-        t[otherAxis] -= otherSign;
+  return knotArray;
+};
+
+const simulate = (moves, numberOfKnots) =>
+  moves.reduce(
+    ({ knots, heatMap }, { axis, distance }) => {
+      for (let i = 0; i < Math.abs(distance); i++) {
+        for (const kIdx in knots) {
+          if (kIdx === "0") {
+            knots[0][axis] += distance < 0 ? -1 : 1;
+            continue;
+          }
+
+          const diff = [
+            knots[kIdx - 1][0] - knots[kIdx][0],
+            knots[kIdx - 1][1] - knots[kIdx][1],
+          ];
+
+          const [absXDiff, absYDiff] = [Math.abs(diff[0]), Math.abs(diff[1])];
+
+          if (diff[0] === 0 && absYDiff > 1) {
+            knots[kIdx][1] += diff[1] > 0 ? 1 : -1;
+          } else if (diff[1] === 0 && absXDiff > 1) {
+            knots[kIdx][0] += diff[0] > 0 ? 1 : -1;
+          } else if (absXDiff > 1 || absYDiff > 1) {
+            knots[kIdx][0] += diff[0] > 0 ? 1 : -1;
+            knots[kIdx][1] += diff[1] > 0 ? 1 : -1;
+          }
+        }
+
+        const t = knots[numberOfKnots];
+        heatMap[t[0]] = heatMap[t[0]] || {};
+        heatMap[t[0]][t[1]] = heatMap[t[0]][t[1]] || 0;
+
+        heatMap[t[0]][t[1]] += 1;
       }
 
-      m[t[0]] = m[t[0]] || {};
-      m[t[0]][t[1]] = m[t[0]][t[1]] || 0;
-
-      m[t[0]][t[1]] += 1;
+      return { knots, heatMap };
+    },
+    {
+      knots: createKnotArray(numberOfKnots),
+      heatMap: {},
     }
+  );
 
-    return { h, t, m };
-  },
-  {
-    h: [0, 0],
-    t: [0, 0],
-    m: {},
-  }
-);
+const getUniqueVisits = (simulationResult) =>
+  Object.values(simulationResult.heatMap).reduce(
+    (agg, row) => (agg += Object.values(row).length),
+    0
+  );
 
-const uniqueTailVisits = Object.values(partA.m).reduce(
-  (agg, row) => (agg += Object.values(row).length),
-  0
-);
-console.log("Unique tail visits:", uniqueTailVisits);
+const partA = getUniqueVisits(simulate(moves, 1));
+console.log("Part A unique tail visits:", partA);
+
+const partB = getUniqueVisits(simulate(moves, 9));
+console.log("Part B unique tail visits:", partB);
