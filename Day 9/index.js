@@ -31,20 +31,20 @@ const simulate = (moves, numberOfKnots) =>
             continue;
           }
 
-          const diff = [
+          const [xDiff, yDiff] = [
             knots[kIdx - 1][0] - knots[kIdx][0],
             knots[kIdx - 1][1] - knots[kIdx][1],
           ];
 
-          const [absXDiff, absYDiff] = [Math.abs(diff[0]), Math.abs(diff[1])];
+          const [absXDiff, absYDiff] = [Math.abs(xDiff), Math.abs(yDiff)];
 
-          if (diff[0] === 0 && absYDiff > 1) {
-            knots[kIdx][1] += diff[1] > 0 ? 1 : -1;
-          } else if (diff[1] === 0 && absXDiff > 1) {
-            knots[kIdx][0] += diff[0] > 0 ? 1 : -1;
+          if (xDiff === 0 && absYDiff > 1) {
+            knots[kIdx][1] += yDiff > 0 ? 1 : -1;
+          } else if (yDiff === 0 && absXDiff > 1) {
+            knots[kIdx][0] += xDiff > 0 ? 1 : -1;
           } else if (absXDiff > 1 || absYDiff > 1) {
-            knots[kIdx][0] += diff[0] > 0 ? 1 : -1;
-            knots[kIdx][1] += diff[1] > 0 ? 1 : -1;
+            knots[kIdx][0] += xDiff > 0 ? 1 : -1;
+            knots[kIdx][1] += yDiff > 0 ? 1 : -1;
           }
         }
 
