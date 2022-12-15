@@ -1,6 +1,9 @@
 import fs from "fs";
+
+const debug = false;
+
 const walls = fs
-  .readFileSync("./sample.txt", "utf-8")
+  .readFileSync("./input.txt", "utf-8")
   .split(/\r?\n/)
   .map((edge) =>
     edge.split(" -> ").map((vertex) => vertex.split(",").map((x) => +x))
@@ -26,13 +29,16 @@ const rotate = (forest, direction = "right") => {
   return rotatedMatrix;
 };
 
-const drawGrid = (grid, perspective) => {
+const drawGrid = (grid, perspective, infinityWalls) => {
   console.clear();
 
   const rotated = perspective === true ? rotate(grid, "right") : grid;
 
-  for (const row of rotated) {
-    console.log(row.join(""));
+  for (const rowIdx in rotated) {
+    const row = rotated[rowIdx];
+    console.log(
+      row.map((x) => (infinityWalls?.includes(+rowIdx) ? "#" : x)).join(" ")
+    );
   }
 };
 
@@ -59,7 +65,7 @@ const boundaries = walls.reduce(
   { max: { x: -Infinity, y: -Infinity }, min: { x: Infinity, y: 0 } }
 );
 
-const xOffset = boundaries.min.x;
+let xOffset = boundaries.min.x;
 const yOffset = boundaries.min.y;
 
 const getGrid = () => {
@@ -85,28 +91,38 @@ const getGrid = () => {
   return grid;
 };
 
-const place = (grid, x, y, infinityWalls = []) => {
-  let floorIndex = grid[x].slice(y ?? 0).findIndex((x) => x !== ".") + (y ?? 0);
+const getFloorIndex = (grid, x, y, infinityWalls) => {
+  let floorIndex = grid[x].slice(y ?? 0).findIndex((x) => x !== ".");
+
   if (floorIndex === -1 && infinityWalls) {
     floorIndex =
       infinityWalls.filter((iW) => iW > y).sort((a, b) => a - b)[0] || -1;
+  } else {
+    floorIndex += y ?? 0;
   }
+
+  return floorIndex;
+};
+
+const place = (grid, x, y, infinityWalls = []) => {
+  let floorIndex = getFloorIndex(grid, x, y, infinityWalls);
   let left = [x - 1, floorIndex];
   let right = [x + 1, floorIndex];
-
-  drawGrid(grid, true);
 
   if (left[0] < 0) {
     grid.unshift(new Array(grid[0].length).fill("."));
     left[0]++;
     right[0]++;
     x++;
+    xOffset--;
+    debug && drawGrid(grid, true, infinityWalls);
   }
-  if (right[0] > grid[x].length) {
+  if (right[0] >= grid.length) {
     grid.push(new Array(grid[x].length).fill("."));
+    debug && drawGrid(grid, true, infinityWalls);
   }
 
-  if (floorIndex === -1) {
+  if (floorIndex === -1 || grid[500 - xOffset][0] === "+") {
     return true;
   }
 
@@ -122,8 +138,8 @@ const place = (grid, x, y, infinityWalls = []) => {
     return place(grid, right[0], right[1], infinityWalls);
   } else {
     grid[x][floorIndex - 1] = "+";
+    debug && drawGrid(grid, true, infinityWalls);
   }
-  drawGrid(grid, true);
 };
 
 let sand = 0;
@@ -132,14 +148,16 @@ while (!place(aGrid, 500 - xOffset)) {
   sand++;
 }
 
-drawGrid(aGrid, true);
 console.log("Part A:", sand);
 
-// boundaries.max.y += 2;
-// const infinityWalls = [boundaries.max.y];
-// const bGrid = getGrid();
+boundaries.max.y += 2;
+const infinityWalls = [boundaries.max.y];
+xOffset = boundaries.min.x;
+const bGrid = getGrid();
+sand = 0;
 
-// while (!place(bGrid, 500 - xOffset, null, infinityWalls)) {
-//   sand++;
-// }
-//drawGrid(bGrid, true);
+while (!place(bGrid, 500 - xOffset, null, infinityWalls)) {
+  sand++;
+}
+drawGrid(bGrid, true);
+console.log("Part B:", sand);
