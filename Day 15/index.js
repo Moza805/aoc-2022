@@ -63,16 +63,19 @@ const partB = new Array(gridSize)
   .fill(null)
   .map((_) => new Array(gridSize).fill(false));
 
-for (const sensor of data) {
+const tempData = [{ loc: [10, 10], rad: 3 }];
+for (const sensor of tempData) {
   for (
     let x = sensor.loc[0] + sensor.rad * -1;
     x <= sensor.loc[0] + sensor.rad;
     x++
   ) {
+    //width = radius - distance from loc[1]
+    // start = width / 2
     if (x >= 0 && x < gridSize) {
       for (
-        let y = sensor.loc[1] + (Math.abs(x) - sensor.rad);
-        y <= sensor.loc[1] + (sensor.rad - Math.abs(x));
+        let y = sensor.loc[1] + (sensor.loc[0] - Math.abs(x) - sensor.rad);
+        y <= sensor.loc[1] + (sensor.rad + Math.abs(x) - sensor.loc[0]);
         y++
       ) {
         if (y >= 0 && y < gridSize) {
