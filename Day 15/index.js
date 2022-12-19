@@ -3,7 +3,7 @@ import fs from "fs";
 const getRectilinearDistance = (a, b) =>
   Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]);
 
-const data = fs
+const sensors = fs
   .readFileSync("./input.txt", "utf-8")
   .split(/\r?\n/)
   .map((x) => x.match(/-?\d+/g))
@@ -13,7 +13,7 @@ const data = fs
     rad: getRectilinearDistance(x.loc, x.near),
   }));
 
-const yAxisData = data.reduce(
+const yAxisData = sensors.reduce(
   (result, sensor) => {
     const options = [
       result.min,
@@ -32,11 +32,11 @@ const yAxisData = data.reduce(
   { min: 0, max: 0, length: 1 }
 );
 
-const row = 2000000; // 10 for sample.txt
+const row = 2000000;
 const part1 = new Array(yAxisData.length).fill(null).reduce(
   (agg, _, index) => {
     if (
-      data.some((sensor) => {
+      sensors.some((sensor) => {
         const distance = getRectilinearDistance(sensor.loc, [
           index + yAxisData.min,
           row,
@@ -49,7 +49,7 @@ const part1 = new Array(yAxisData.length).fill(null).reduce(
     return agg;
   },
   new Set(
-    data
+    sensors
       .map((x) => x.near)
       .filter((x) => x[1] === row)
       .map((x) => x[0] + x[1])
@@ -57,3 +57,52 @@ const part1 = new Array(yAxisData.length).fill(null).reduce(
 );
 
 console.log("Part 1:", part1);
+
+const limit = 4000000;
+let partB = undefined;
+
+for (const sensor of sensors) {
+  for (
+    let x = sensor.loc[0] + sensor.rad * -1;
+    x <= sensor.loc[0] + sensor.rad;
+    x++
+  ) {
+    let yStart = sensor.loc[1] - (sensor.rad - Math.abs(x - sensor.loc[0])) - 1;
+    let yEnd =
+      sensor.loc[1] -
+      (sensor.rad - Math.abs(x - sensor.loc[0])) +
+      (sensor.rad - Math.abs(x - sensor.loc[0])) * 2 -
+      1;
+    if (
+      yStart < 0 ||
+      yEnd > limit ||
+      yStart > limit ||
+      yEnd < 0 ||
+      x < 0 ||
+      x > limit
+    ) {
+      continue;
+    }
+    if (
+      sensors.every((s) => {
+        const distance = getRectilinearDistance([x, yStart], s.loc);
+
+        return s.rad < distance;
+      })
+    ) {
+      partB = [x, yStart];
+      break;
+    } else if (
+      sensors.every((s) => {
+        const distance = getRectilinearDistance([x, yEnd], s.loc);
+
+        return s.rad < distance;
+      })
+    ) {
+      partB = [x, yEnd];
+      break;
+    }
+  }
+}
+
+console.log("Part 2:", partB[0] * limit + partB[1]);
